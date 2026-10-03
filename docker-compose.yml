@@ -1,0 +1,50 @@
+name: cetaf-data-pipeline
+
+networks:
+  cetaf-net:
+    external: true
+
+volumes:
+  postgres_data:
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: cetaf_survey_api
+    networks:
+      - cetaf-net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  elasticsearch:
+    image: elasticsearch:7.10.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    networks:
+      - cetaf-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.elasticsearch.rule=Host(`elasticsearch.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.elasticsearch.entrypoints=web"
+
+  django:
+    build: .
+    container_name: django
+    env_file:
+      - .env
+    networks:
+      - cetaf-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.django.rule=Host(`django.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.django.entrypoints=web"
+    depends_on:
+      - postgres
+      - elasticsearch
+    volumes:
+      - .:/app

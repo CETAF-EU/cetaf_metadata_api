@@ -1,0 +1,17 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Google API credentials
+resources/google/*.json
+*.json
+
+# Database
+*.sqlite3
+db.sqlite3
+*.gz
+
+# Python
+__pycache__/
+*.pyc
